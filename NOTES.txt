@@ -1,0 +1,11 @@
+NOTES:
+
+
+
+Steps to run GET .md files
+- Invoke GETstores.md 
+- Save as JSON file
+
+Steps to run POST .md files
+- Invoke POSTstores.md 
+- POST json file
