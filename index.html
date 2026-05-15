@@ -1,0 +1,286 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>CROM</title>
+    <style>
+        * {
+            margin: 0;
+            padding: 0;
+            box-sizing: border-box;
+        }
+        
+        body {
+            font-family: 'Segoe UI', Tahoma, Geneva, Verdana, sans-serif;
+            background: linear-gradient(135deg, #667eea 0%, #764ba2 100%);
+            min-height: 100vh;
+            display: flex;
+            align-items: center;
+            justify-content: center;
+            padding: 20px;
+        }
+        
+        .container {
+            text-align: center;
+            background: rgba(255, 255, 255, 0.95);
+            padding: 60px 40px;
+            border-radius: 10px;
+            box-shadow: 0 20px 60px rgba(0, 0, 0, 0.3);
+            animation: slideIn 0.8s ease-out;
+            max-width: 600px;
+            width: 100%;
+        }
+        
+        h1 {
+            color: #333;
+            font-size: 48px;
+            margin-bottom: 20px;
+            letter-spacing: -1px;
+        }
+        
+        p {
+            color: #666;
+            font-size: 18px;
+            margin-top: 15px;
+            line-height: 1.6;
+        }
+        
+        .logo {
+            font-size: 72px;
+            margin-bottom: 20px;
+        }
+        
+        .status {
+            background-color: #f0f0f0;
+            padding: 20px;
+            margin-top: 30px;
+            border-radius: 8px;
+            text-align: left;
+        }
+        
+        .status h3 {
+            color: #333;
+            margin-bottom: 10px;
+            font-size: 16px;
+        }
+        
+        .status-item {
+            color: #666;
+            font-size: 14px;
+            margin: 8px 0;
+            padding: 5px 0;
+            border-bottom: 1px solid #ddd;
+        }
+        
+        .status-item:last-child {
+            border-bottom: none;
+        }
+        
+        .status-badge {
+            display: inline-block;
+            padding: 4px 12px;
+            margin-left: 10px;
+            border-radius: 4px;
+            font-size: 12px;
+            font-weight: bold;
+        }
+        
+        .badge-ready {
+            background-color: #d4edda;
+            color: #155724;
+        }
+        
+        .badge-pending {
+            background-color: #fff3cd;
+            color: #856404;
+        }
+        
+        .section-title {
+            color: #333;
+            font-size: 14px;
+            font-weight: bold;
+            margin-top: 15px;
+            margin-bottom: 10px;
+            text-align: left;
+        }
+        
+        .blob-files {
+            list-style: none;
+            padding: 0;
+            margin: 0;
+        }
+        
+        .blob-files li {
+            color: #666;
+            font-size: 13px;
+            padding: 5px 0;
+            border-bottom: 1px solid #ddd;
+        }
+        
+        .blob-files li:last-child {
+            border-bottom: none;
+        }
+        
+        @keyframes slideIn {
+            from {
+                opacity: 0;
+                transform: translateY(-30px);
+            }
+            to {
+                opacity: 1;
+                transform: translateY(0);
+            }
+        }
+    </style>
+</head>
+<body>
+    <div class="container">
+        <div class="logo">🚀</div>
+        <h1>Welcome to CROM</h1>
+        <p>Your application is running successfully on Azure App Service</p>
+        
+        <div class="status">
+            <h3>Application Status</h3>
+            <div class="status-item">
+                Web App
+                <span class="status-badge badge-ready">Ready</span>
+            </div>
+            <div class="status-item">
+                Storage Integration
+                <span class="status-badge badge-pending">Ready (Stub)</span>
+            </div>
+            
+            <div class="section-title">Configured Blob Files</div>
+            <ul class="blob-files">
+                <li>📄 events_crom_ui.json</li>
+                <li>📄 stores_crom_ui.json</li>
+                <li>📄 trails_crom_ui.json</li>
+            </ul>
+            
+            <div class="section-title">Storage Account</div>
+            <div class="status-item">Container: <code>json</code></div>
+            <div class="status-item">Account: sacromblobstorage</div>
+        </div>
+    </div>
+
+    <script>
+        // =========================================================================
+        // CROM - Azure Blob Storage Integration Module
+        // =========================================================================
+        // This module provides stub functions for reading blobs and listing containers
+        // from Azure Blob Storage. Implementation to be completed based on backend service.
+        // =========================================================================
+
+        class CromBlobStorageClient {
+            /**
+             * Initialize the Blob Storage Client
+             * @param {string} storageAccount - Storage account name
+             * @param {string} containerName - Container name
+             */
+            constructor(storageAccount = 'sacromblobstorage', containerName = 'json') {
+                this.storageAccount = storageAccount;
+                this.containerName = containerName;
+                this.baseUrl = `https://${storageAccount}.blob.core.windows.net/${containerName}`;
+                this.blobs = [
+                    'events_crom_ui.json',
+                    'stores_crom_ui.json',
+                    'trails_crom_ui.json'
+                ];
+            }
+
+            /**
+             * List all containers in the storage account
+             * @returns {Promise<Array>} Array of container names
+             */
+            async listContainers() {
+                try {
+                    console.log('Listing containers from storage account:', this.storageAccount);
+                    // TODO: Implement container listing
+                    // This will require backend API or SAS token authentication
+                    // Expected response: Array of container names
+                    throw new Error('listContainers() - Not yet implemented. Requires authentication with storage account.');
+                } catch (error) {
+                    console.error('Error listing containers:', error);
+                    return [];
+                }
+            }
+
+            /**
+             * Read a blob from the storage account
+             * @param {string} blobName - Name of the blob to read
+             * @returns {Promise<Object>} Parsed JSON blob content
+             */
+            async readBlob(blobName) {
+                try {
+                    console.log(`Reading blob: ${blobName} from container: ${this.containerName}`);
+                    // TODO: Implement blob reading
+                    // Expected implementation options:
+                    // 1. Backend API endpoint that handles authentication
+                    // 2. SAS token for direct Blob Storage access
+                    // 3. Azure SDK with Managed Identity
+                    throw new Error(`readBlob('${blobName}') - Not yet implemented. Requires authentication with storage account.`);
+                } catch (error) {
+                    console.error(`Error reading blob ${blobName}:`, error);
+                    return null;
+                }
+            }
+
+            /**
+             * Read events data from blob storage
+             * @returns {Promise<Object>} Events JSON data
+             */
+            async getEvents() {
+                return await this.readBlob('events_crom_ui.json');
+            }
+
+            /**
+             * Read stores data from blob storage
+             * @returns {Promise<Object>} Stores JSON data
+             */
+            async getStores() {
+                return await this.readBlob('stores_crom_ui.json');
+            }
+
+            /**
+             * Read trails data from blob storage
+             * @returns {Promise<Object>} Trails JSON data
+             */
+            async getTrails() {
+                return await this.readBlob('trails_crom_ui.json');
+            }
+
+            /**
+             * Get list of configured blob files
+             * @returns {Array} Array of blob file names
+             */
+            getConfiguredBlobs() {
+                return [...this.blobs];
+            }
+
+            /**
+             * Get storage account information
+             * @returns {Object} Storage account configuration
+             */
+            getStorageInfo() {
+                return {
+                    storageAccount: this.storageAccount,
+                    containerName: this.containerName,
+                    baseUrl: this.baseUrl,
+                    configuredBlobs: this.getConfiguredBlobs()
+                };
+            }
+        }
+
+        // Initialize the Blob Storage Client
+        const cromStorage = new CromBlobStorageClient();
+
+        // Log storage information to console
+        console.log('CROM Application - Blob Storage Client Initialized');
+        console.log('Storage Configuration:', cromStorage.getStorageInfo());
+
+        // Export for use in other modules (if using ES6 modules)
+        // export { CromBlobStorageClient };
+    </script>
+</body>
+</html>
