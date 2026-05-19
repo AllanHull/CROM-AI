@@ -96,14 +96,38 @@ CROM-AI/
 ### GET `/`
 Returns the welcome page with the UI for interacting with Azure services.
 
-**Response**: HTML page
+**Features**:
+- Status dashboard showing application health
+- Interactive buttons to call Logic App endpoints
+- Real-time data display with formatted JSON responses
+- Blob listing functionality
+- Loading indicators and error handling
 
-### POST `/api/call-logic-app`
+**Response**: HTML page with interactive components
+
+### GET `/api/call-logic-app`
 Calls the Azure Logic App endpoint and returns the response.
 
 **Request**:
 ```json
-POST /api/call-logic-app
+GET /api/call-logic-app
+```
+
+**Response**:
+```json
+{
+  "status": "success",
+  "message": "Logic App call succeeded",
+  "data": { ... }
+}
+```
+
+### GET `/api/call-logic-app-json`
+Route to call the Logic App endpoint and return JSON response. Sends GET request to the Logic App, logs the response, and returns JSON.
+
+**Request**:
+```json
+GET /api/call-logic-app-json
 ```
 
 **Response**:
@@ -134,6 +158,16 @@ GET /api/blobs
   ]
 }
 ```
+
+### GET `/api/call-logic-app-html`
+Calls the Azure Logic App endpoint and returns the response formatted as an HTML page with styled tables and data visualization.
+
+**Request**:
+```
+GET /api/call-logic-app-html
+```
+
+**Response**: HTML page with formatted response data and styling.
 
 ### GET `/health`
 Health check endpoint for monitoring and load balancer configuration.
@@ -209,7 +243,13 @@ curl http://localhost:5000/
 curl http://localhost:5000/health
 
 # Test Logic App call
-curl -X POST http://localhost:5000/api/call-logic-app
+curl -X GET http://localhost:5000/api/call-logic-app
+
+# Test Logic App JSON call
+curl -X GET http://localhost:5000/api/call-logic-app-json
+
+# Test Logic App HTML response
+curl -X GET http://localhost:5000/api/call-logic-app-html
 
 # Test blob listing
 curl http://localhost:5000/api/blobs
@@ -258,7 +298,7 @@ if blob_data:
 The application calls the Logic App endpoint to trigger workflows:
 
 - **Endpoint**: `lg-crom-events-read-http-trigger`
-- **Method**: HTTP POST
+- **Method**: HTTP GET
 - **Response Type**: JSON
 
 The response is logged and displayed in the web UI.

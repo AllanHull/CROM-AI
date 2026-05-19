@@ -7,6 +7,7 @@ param webAppName string = 'CROM'
 param skuName string = 'B1'
 param skuTier string = 'Basic'
 param storageAccountName string = 'sacromblobstorage'
+param logicAppEndpoint string = 'https://prod-15.eastus.logic.azure.com:443/workflows/1906dffc4adc4cdbae960cb5235ef7c3/triggers/When_an_HTTP_request_is_received/paths/invoke?api-version=2016-10-01&sp=%2Ftriggers%2FWhen_an_HTTP_request_is_received%2Frun&sv=1.0&sig=5MxclMj9Q21lN8sMTV-S2HfQOzWqKcjWAD8GgiR84a0'
 
 // Reference the existing storage account
 resource existingStorageAccount 'Microsoft.Storage/storageAccounts@2023-01-01' existing = {
@@ -39,25 +40,38 @@ resource webApp 'Microsoft.Web/sites@2023-12-01' = {
     serverFarmId: appServicePlan.id
     siteConfig: {
       numberOfWorkers: 1
-      defaultDocuments: [
-        'index.html'
-        'index.htm'
-      ]
-      linuxFxVersion: 'STATICSITE|1.0'
+      linuxFxVersion: 'PYTHON|3.11'
+      appCommandLine: 'python -m pip install -r requirements.txt && gunicorn --bind 0.0.0.0 --timeout 600 app:app'
+      alwaysOn: false
     }
+    httpsOnly: true
   }
+}
 
-  // Configure the web app to host a simple HTML page
-  resource config 'config@2023-12-01' = {
-    name: 'web'
-    properties: {
-      numberOfWorkers: 1
-      defaultDocuments: [
-        'index.html'
-        'index.htm'
-      ]
-      linuxFxVersion: 'STATICSITE|1.0'
-    }
+// App Settings
+resource webAppSettings 'Microsoft.Web/sites/config@2023-12-01' = {
+  parent: webApp
+  name: 'appsettings'
+  properties: {
+    STORAGE_ACCOUNT_NAME: storageAccountName
+    STORAGE_ACCOUNT_KEY: listKeys(existingStorageAccount.id, existingStorageAccount.apiVersion).keys[0].value
+    LOGIC_APP_ENDPOINT: logicAppEndpoint
+    FLASK_ENV: 'production'
+    WEBSITES_ENABLE_APP_SERVICE_STORAGE: 'false'
+    SCM_DO_BUILD_DURING_DEPLOYMENT: 'true'
+    PYTHONPATH: '/home/site/wwwroot'
+  }
+}
+
+// Web app config for startup command
+resource webAppConfig 'Microsoft.Web/sites/config@2023-12-01' = {
+  parent: webApp
+  name: 'web'
+  properties: {
+    numberOfWorkers: 1
+    linuxFxVersion: 'PYTHON|3.11'
+    appCommandLine: 'python -m pip install -r requirements.txt && gunicorn --bind 0.0.0.0 --timeout 600 --workers 2 app:app'
+    autoHealEnabled: false
   }
 }
 

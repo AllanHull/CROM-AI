@@ -1,0 +1,73 @@
+2026-05-17T04:46:24  Fetching changes.
+2026-05-17T04:46:24    Starting  LocalZipHandler
+2026-05-17T04:46:24    Cleaning up temp folders from previous zip deployments and extracting pushed zip file /tmp/zipdeploy/1cc2c2ae-09ec-47ab-b6da-bdb35ded0dd2.zip (0.00 MB) to /tmp/zipdeploy/extracted
+2026-05-17T04:46:27  Updating submodules.
+2026-05-17T04:46:27  Preparing deployment for commit id '12e62c73-1'.
+2026-05-17T04:46:28  PreDeployment: context.CleanOutputPath False
+2026-05-17T04:46:28  PreDeployment: context.OutputPath /home/site/wwwroot
+2026-05-17T04:46:28  Repository path is /tmp/zipdeploy/extracted
+2026-05-17T04:46:28  Running oryx build...
+2026-05-17T04:46:29    Command: oryx build /tmp/zipdeploy/extracted -o /home/site/wwwroot --platform python --platform-version 3.11 -p virtualenv_name=antenv --log-file /tmp/build-debug.log  -i /tmp/8deb3cf4221ff78 --compress-destination-dir | tee /tmp/oryx-build.log
+2026-05-17T04:46:31    Operation performed by Microsoft Oryx, https://github.com/Microsoft/Oryx
+2026-05-17T04:46:31    You can report issues at https://github.com/Microsoft/Oryx/issues
+2026-05-17T04:46:31    
+2026-05-17T04:46:31    Oryx Version: 0.2.20260420.1+83c04e9ee1882dc90d279b63348824daedbd3c96, Commit: 83c04e9ee1882dc90d279b63348824daedbd3c96, ReleaseTagName: 20260420.1
+2026-05-17T04:46:31    
+2026-05-17T04:46:31    Build Operation ID: 477b88c14d00d64c
+2026-05-17T04:46:32    Repository Commit : 12e62c73-1921-4355-92da-a39ddf96678d
+2026-05-17T04:46:32    OS Type           : bullseye
+2026-05-17T04:46:32    Image Type        : githubactions
+2026-05-17T04:46:32    
+2026-05-17T04:46:32    Primary SDK Storage URL: https://oryx-cdn.microsoft.io
+2026-05-17T04:46:32    Backup SDK Storage URL: 
+2026-05-17T04:46:32    ACR SDK Registry URL: (not set)
+2026-05-17T04:46:32    SDK provider status:
+2026-05-17T04:46:32      External ACR SDK provider: Enabled
+2026-05-17T04:46:32      External SDK provider: Enabled
+2026-05-17T04:46:32      Direct ACR SDK provider: Disabled
+2026-05-17T04:46:32      Blob SDK provider: Enabled
+2026-05-17T04:46:32    External ACR SDK provider is enabled. Only using user-specified platform: python
+2026-05-17T04:46:32    Detecting platforms...
+2026-05-17T04:46:39    External ACR provider resolved version '3.11.15' for python.
+2026-05-17T04:46:39    Version resolved using external ACR SDK provider.
+2026-05-17T04:46:40    Detected following platforms:
+2026-05-17T04:46:40      python: 3.11.15
+2026-05-17T04:46:40    Requesting SDK from ACR via external provider: python 3.11.15 (bullseye)
+2026-05-17T04:46:43    Successfully pulled SDK from ACR via external provider: python 3.11.15
+2026-05-17T04:46:43    SDK for 'python' version '3.11.15' fetched via external ACR provider.
+2026-05-17T04:46:43    Version '3.11.15' of platform 'python' is not installed. Generating script to install it...
+2026-05-17T04:46:45    
+2026-05-17T04:46:45    Using intermediate directory '/tmp/8deb3cf4221ff78'.
+2026-05-17T04:46:45    
+2026-05-17T04:46:45    Copying files to the intermediate directory...
+2026-05-17T04:46:45    Copying files to intermediate directory done in 0 sec(s).
+2026-05-17T04:46:45    
+2026-05-17T04:46:45    Source directory     : /tmp/8deb3cf4221ff78
+2026-05-17T04:46:45    Destination directory: /home/site/wwwroot
+2026-05-17T04:46:46    
+2026-05-17T04:46:46    Installing platform...
+2026-05-17T04:46:46    
+2026-05-17T04:46:46    Downloading and extracting 'python' version '3.11.15' to '/tmp/oryx/platforms/python/3.11.15'...
+2026-05-17T04:46:46    Detected image debian flavor: bullseye.
+2026-05-17T04:46:46    SDK binary download was skipped. Looking for cached tarball...
+2026-05-17T04:46:46    Found tarball at /var/OryxAcrSdks/python/python-bullseye-3.11.15.tar.gz
+2026-05-17T04:47:36    Successfully extracted python version 3.11.15 from cached tarball.
+2026-05-17T04:47:37    
+2026-05-17T04:47:37    image detector file exists, platform is python..
+2026-05-17T04:47:38    OS detector file exists, OS is bullseye..
+2026-05-17T04:47:38    Platform installation done in 51 sec(s).
+2026-05-17T04:47:39    Running build script snippets...
+2026-05-17T04:47:40    Python Version: /tmp/oryx/platforms/python/3.11.15/bin/python3.11
+2026-05-17T04:47:40    Creating directory for command manifest file if it does not exist
+2026-05-17T04:47:40    Removing existing manifest file
+2026-05-17T04:47:40    Python Virtual Environment: antenv
+2026-05-17T04:47:40    Creating virtual environment...
+2026-05-17T04:47:41    Executing: /tmp/oryx/platforms/python/3.11.15/bin/python3.11 -m venv antenv --copies --system-site-packages
+2026-05-17T04:49:02    Activating virtual environment...
+2026-05-17T04:49:02    Fast build is enabled
+2026-05-17T04:49:02    Installing uv...
+2026-05-17T04:49:15    Collecting uv
+2026-05-17T04:49:15      Downloading uv-0.11.14-py3-none-manylinux_2_17_x86_64.manylinux2014_x86_64.whl.metadata (11 kB)
+2026-05-17T04:49:16    Downloading uv-0.11.14-py3-none-manylinux_2_17_x86_64.manylinux2014_x86_64.whl (24.7 MB)
+2026-05-17T04:49:18       ━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━ 24.7/24.7 MB 7.3 MB/s eta 0:00:00
+2026-05-17T04:49:19    Installing collected packages: uv

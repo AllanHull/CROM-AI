@@ -122,6 +122,105 @@
             border-bottom: none;
         }
         
+        .buttons {
+            display: flex;
+            gap: 10px;
+            margin-top: 30px;
+            flex-wrap: wrap;
+            justify-content: center;
+        }
+        
+        button {
+            background-color: #667eea;
+            color: white;
+            border: none;
+            padding: 12px 24px;
+            font-size: 14px;
+            border-radius: 5px;
+            cursor: pointer;
+            transition: background-color 0.3s;
+            font-weight: bold;
+        }
+        
+        button:hover {
+            background-color: #764ba2;
+        }
+        
+        button:disabled {
+            background-color: #ccc;
+            cursor: not-allowed;
+        }
+        
+        .data-display {
+            background-color: #f9f9f9;
+            border: 1px solid #ddd;
+            padding: 20px;
+            margin-top: 30px;
+            border-radius: 8px;
+            text-align: left;
+            max-height: 500px;
+            overflow-y: auto;
+            display: none;
+        }
+        
+        .data-display.visible {
+            display: block;
+        }
+        
+        .data-display h3 {
+            color: #333;
+            margin-bottom: 15px;
+            border-bottom: 2px solid #667eea;
+            padding-bottom: 10px;
+        }
+        
+        .data-display pre {
+            background-color: #f5f5f5;
+            padding: 15px;
+            border-radius: 5px;
+            overflow-x: auto;
+            font-size: 12px;
+            color: #333;
+        }
+        
+        .loading {
+            display: none;
+            text-align: center;
+            margin-top: 15px;
+        }
+        
+        .loading.visible {
+            display: block;
+        }
+        
+        .spinner {
+            border: 4px solid #f3f3f3;
+            border-top: 4px solid #667eea;
+            border-radius: 50%;
+            width: 20px;
+            height: 20px;
+            animation: spin 1s linear infinite;
+            margin: 0 auto;
+        }
+        
+        @keyframes spin {
+            0% { transform: rotate(0deg); }
+            100% { transform: rotate(360deg); }
+        }
+        
+        .error {
+            background-color: #f8d7da;
+            color: #721c24;
+            padding: 15px;
+            border-radius: 5px;
+            margin-top: 15px;
+            display: none;
+        }
+        
+        .error.visible {
+            display: block;
+        }
+
         @keyframes slideIn {
             from {
                 opacity: 0;
@@ -162,125 +261,217 @@
             <div class="status-item">Container: <code>json</code></div>
             <div class="status-item">Account: sacromblobstorage</div>
         </div>
+        
+        <div class="buttons">
+            <button id="callLogicAppBtn">Call Logic App</button>
+            <button id="callLogicAppJsonBtn">Call Logic App (JSON)</button>
+            <button id="getBlobsBtn">Get Blobs</button>
+            <button id="clearBtn">Clear Data</button>
+        </div>
+        
+        <div class="loading" id="loading">
+            <div class="spinner"></div>
+            <p>Loading...</p>
+        </div>
+        
+        <div class="error" id="errorMessage"></div>
+        
+        <div class="data-display" id="dataDisplay">
+            <h3 id="dataTitle">Response Data</h3>
+            <pre id="dataContent"></pre>
+        </div>
     </div>
 
     <script>
         // =========================================================================
-        // CROM - Azure Blob Storage Integration Module
+        // CROM - API Client Module
         // =========================================================================
-        // This module provides stub functions for reading blobs and listing containers
-        // from Azure Blob Storage. Implementation to be completed based on backend service.
+        // This module provides functions for calling the backend API endpoints
+        // and displaying the responses in HTML format.
         // =========================================================================
 
-        class CromBlobStorageClient {
-            /**
-             * Initialize the Blob Storage Client
-             * @param {string} storageAccount - Storage account name
-             * @param {string} containerName - Container name
-             */
-            constructor(storageAccount = 'sacromblobstorage', containerName = 'json') {
-                this.storageAccount = storageAccount;
-                this.containerName = containerName;
-                this.baseUrl = `https://${storageAccount}.blob.core.windows.net/${containerName}`;
-                this.blobs = [
-                    'events_crom_ui.json',
-                    'stores_crom_ui.json',
-                    'trails_crom_ui.json'
-                ];
+        class CromAPIClient {
+            constructor() {
+                this.baseUrl = window.location.origin;
             }
 
             /**
-             * List all containers in the storage account
-             * @returns {Promise<Array>} Array of container names
+             * Call the Logic App endpoint
+             * @returns {Promise<Object>} API response
              */
-            async listContainers() {
+            async callLogicApp() {
                 try {
-                    console.log('Listing containers from storage account:', this.storageAccount);
-                    // TODO: Implement container listing
-                    // This will require backend API or SAS token authentication
-                    // Expected response: Array of container names
-                    throw new Error('listContainers() - Not yet implemented. Requires authentication with storage account.');
+                    const response = await fetch(`${this.baseUrl}/api/call-logic-app`, {
+                        method: 'GET',
+                        headers: {
+                            'Content-Type': 'application/json'
+                        }
+                    });
+                    
+                    if (!response.ok) {
+                        throw new Error(`HTTP Error: ${response.status}`);
+                    }
+                    
+                    return await response.json();
                 } catch (error) {
-                    console.error('Error listing containers:', error);
-                    return [];
+                    console.error('Error calling Logic App:', error);
+                    throw error;
                 }
             }
 
             /**
-             * Read a blob from the storage account
-             * @param {string} blobName - Name of the blob to read
-             * @returns {Promise<Object>} Parsed JSON blob content
+             * Call the Logic App JSON endpoint
+             * @returns {Promise<Object>} API response
              */
-            async readBlob(blobName) {
+            async callLogicAppJson() {
                 try {
-                    console.log(`Reading blob: ${blobName} from container: ${this.containerName}`);
-                    // TODO: Implement blob reading
-                    // Expected implementation options:
-                    // 1. Backend API endpoint that handles authentication
-                    // 2. SAS token for direct Blob Storage access
-                    // 3. Azure SDK with Managed Identity
-                    throw new Error(`readBlob('${blobName}') - Not yet implemented. Requires authentication with storage account.`);
+                    const response = await fetch(`${this.baseUrl}/api/call-logic-app-json`, {
+                        method: 'GET',
+                        headers: {
+                            'Content-Type': 'application/json'
+                        }
+                    });
+                    
+                    if (!response.ok) {
+                        throw new Error(`HTTP Error: ${response.status}`);
+                    }
+                    
+                    return await response.json();
                 } catch (error) {
-                    console.error(`Error reading blob ${blobName}:`, error);
-                    return null;
+                    console.error('Error calling Logic App JSON:', error);
+                    throw error;
                 }
             }
 
             /**
-             * Read events data from blob storage
-             * @returns {Promise<Object>} Events JSON data
+             * Get list of blobs
+             * @returns {Promise<Object>} API response
              */
-            async getEvents() {
-                return await this.readBlob('events_crom_ui.json');
-            }
-
-            /**
-             * Read stores data from blob storage
-             * @returns {Promise<Object>} Stores JSON data
-             */
-            async getStores() {
-                return await this.readBlob('stores_crom_ui.json');
-            }
-
-            /**
-             * Read trails data from blob storage
-             * @returns {Promise<Object>} Trails JSON data
-             */
-            async getTrails() {
-                return await this.readBlob('trails_crom_ui.json');
-            }
-
-            /**
-             * Get list of configured blob files
-             * @returns {Array} Array of blob file names
-             */
-            getConfiguredBlobs() {
-                return [...this.blobs];
-            }
-
-            /**
-             * Get storage account information
-             * @returns {Object} Storage account configuration
-             */
-            getStorageInfo() {
-                return {
-                    storageAccount: this.storageAccount,
-                    containerName: this.containerName,
-                    baseUrl: this.baseUrl,
-                    configuredBlobs: this.getConfiguredBlobs()
-                };
+            async getBlobs() {
+                try {
+                    const response = await fetch(`${this.baseUrl}/api/blobs`, {
+                        method: 'GET',
+                        headers: {
+                            'Content-Type': 'application/json'
+                        }
+                    });
+                    
+                    if (!response.ok) {
+                        throw new Error(`HTTP Error: ${response.status}`);
+                    }
+                    
+                    return await response.json();
+                } catch (error) {
+                    console.error('Error getting blobs:', error);
+                    throw error;
+                }
             }
         }
 
-        // Initialize the Blob Storage Client
-        const cromStorage = new CromBlobStorageClient();
+        // UI Management
+        class CromUI {
+            constructor() {
+                this.apiClient = new CromAPIClient();
+                this.initializeEventListeners();
+            }
 
-        // Log storage information to console
-        console.log('CROM Application - Blob Storage Client Initialized');
-        console.log('Storage Configuration:', cromStorage.getStorageInfo());
+            initializeEventListeners() {
+                document.getElementById('callLogicAppBtn').addEventListener('click', () => this.handleCallLogicApp());
+                document.getElementById('callLogicAppJsonBtn').addEventListener('click', () => this.handleCallLogicAppJson());
+                document.getElementById('getBlobsBtn').addEventListener('click', () => this.handleGetBlobs());
+                document.getElementById('clearBtn').addEventListener('click', () => this.handleClear());
+            }
 
-        // Export for use in other modules (if using ES6 modules)
-        // export { CromBlobStorageClient };
+            showLoading(show = true) {
+                const loading = document.getElementById('loading');
+                if (show) {
+                    loading.classList.add('visible');
+                } else {
+                    loading.classList.remove('visible');
+                }
+            }
+
+            showError(message) {
+                const errorDiv = document.getElementById('errorMessage');
+                errorDiv.textContent = message;
+                errorDiv.classList.add('visible');
+                setTimeout(() => {
+                    errorDiv.classList.remove('visible');
+                }, 5000);
+            }
+
+            displayData(title, data) {
+                const dataDisplay = document.getElementById('dataDisplay');
+                const dataTitle = document.getElementById('dataTitle');
+                const dataContent = document.getElementById('dataContent');
+                
+                dataTitle.textContent = title;
+                
+                if (typeof data === 'string') {
+                    dataContent.textContent = data;
+                } else {
+                    dataContent.textContent = JSON.stringify(data, null, 2);
+                }
+                
+                dataDisplay.classList.add('visible');
+            }
+
+            clearData() {
+                const dataDisplay = document.getElementById('dataDisplay');
+                const errorDiv = document.getElementById('errorMessage');
+                dataDisplay.classList.remove('visible');
+                errorDiv.classList.remove('visible');
+            }
+
+            async handleCallLogicApp() {
+                this.showLoading(true);
+                this.clearData();
+                try {
+                    const data = await this.apiClient.callLogicApp();
+                    this.displayData('Logic App Response', data);
+                } catch (error) {
+                    this.showError(`Error: ${error.message}`);
+                } finally {
+                    this.showLoading(false);
+                }
+            }
+
+            async handleCallLogicAppJson() {
+                this.showLoading(true);
+                this.clearData();
+                try {
+                    const data = await this.apiClient.callLogicAppJson();
+                    this.displayData('Logic App JSON Response', data);
+                } catch (error) {
+                    this.showError(`Error: ${error.message}`);
+                } finally {
+                    this.showLoading(false);
+                }
+            }
+
+            async handleGetBlobs() {
+                this.showLoading(true);
+                this.clearData();
+                try {
+                    const data = await this.apiClient.getBlobs();
+                    this.displayData('Available Blobs', data);
+                } catch (error) {
+                    this.showError(`Error: ${error.message}`);
+                } finally {
+                    this.showLoading(false);
+                }
+            }
+
+            handleClear() {
+                this.clearData();
+            }
+        }
+
+        // Initialize the UI when the page loads
+        document.addEventListener('DOMContentLoaded', () => {
+            const cromUI = new CromUI();
+            console.log('CROM Application - UI Initialized');
+        });
     </script>
 </body>
 </html>

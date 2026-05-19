@@ -5,13 +5,27 @@ Flask application that integrates with Azure Storage and Logic App
 
 import logging
 import os
+import sys
+import json
+from datetime import datetime
 from flask import Flask, render_template, jsonify
-from azure.storage.blob import BlobServiceClient
-import requests
-from dotenv import load_dotenv
 
-# Load environment variables
-load_dotenv()
+try:
+    from azure.storage.blob import BlobServiceClient
+except ImportError:
+    BlobServiceClient = None
+
+import requests
+
+try:
+    from dotenv import load_dotenv
+    load_dotenv()
+except ImportError:
+    pass
+
+# Add debugging to startup
+print(f"Python version: {sys.version}", file=sys.stderr)
+print(f"Current directory: {os.getcwd()}", file=sys.stderr)
 
 # Initialize Flask app
 app = Flask(__name__)
@@ -19,15 +33,23 @@ app = Flask(__name__)
 # Configure logging
 logging.basicConfig(
     level=logging.INFO,
-    format='%(asctime)s - %(name)s - %(levelname)s - %(message)s'
+    format='%(asctime)s - %(name)s - %(levelname)s - %(message)s',
+    stream=sys.stdout
 )
 logger = logging.getLogger(__name__)
+
+logger.info("Starting CROM Flask application")
 
 # Azure configuration
 STORAGE_ACCOUNT_NAME = os.getenv('STORAGE_ACCOUNT_NAME', 'sacromblobstorage')
 STORAGE_ACCOUNT_KEY = os.getenv('STORAGE_ACCOUNT_KEY', '')
 LOGIC_APP_ENDPOINT = os.getenv('LOGIC_APP_ENDPOINT', 
     'https://prod-15.eastus.logic.azure.com:443/workflows/1906dffc4adc4cdbae960cb5235ef7c3/triggers/When_an_HTTP_request_is_received/paths/invoke?api-version=2016-10-01&sp=%2Ftriggers%2FWhen_an_HTTP_request_is_received%2Frun&sv=1.0&sig=5MxclMj9Q21lN8sMTV-S2HfQOzWqKcjWAD8GgiR84a0')
+STORES_LOGIC_APP_ENDPOINT = os.getenv('STORES_LOGIC_APP_ENDPOINT',
+    'https://prod-73.eastus.logic.azure.com:443/workflows/edb28f944da841b88fa8d0d923184675/triggers/When_an_HTTP_request_is_received_for_Stores_JSON_Blob/paths/invoke?api-version=2016-10-01&sp=%2Ftriggers%2FWhen_an_HTTP_request_is_received_for_Stores_JSON_Blob%2Frun&sv=1.0&sig=i_6b1gJASPMJWeW4FhZzlkzXe8zraSJfhZVTQzqHj6E')
+
+logger.info(f"Storage account: {STORAGE_ACCOUNT_NAME}")
+logger.info("Configuration loaded successfully")
 
 
 def get_blob_service_client():
@@ -93,7 +115,7 @@ def home():
     return render_template('index.html')
 
 
-@app.route('/api/call-logic-app', methods=['POST'])
+@app.route('/api/call-logic-app', methods=['GET', 'POST'])
 def call_logic_app():
     """
     Call the Azure Logic App endpoint and return the response
@@ -103,7 +125,7 @@ def call_logic_app():
         logger.info("Calling Logic App endpoint")
         
         # Make HTTP request to Logic App
-        response = requests.post(LOGIC_APP_ENDPOINT, timeout=30)
+        response = requests.get(LOGIC_APP_ENDPOINT, timeout=30)
         
         # Log the response
         logger.info(f"Logic App response status: {response.status_code}")
@@ -140,6 +162,65 @@ def call_logic_app():
             "status": "error",
             "message": "Error calling Logic App",
             "details": str(e)
+        }), 500
+
+
+@app.route('/api/call-logic-app-json', methods=['GET', 'POST'])
+def call_logic_app_json():
+    """
+    Route to call the Logic App endpoint and return JSON response.
+    Sends GET request to the Logic App, logs the response, and returns JSON.
+    """
+    logger.info("Logic App JSON call initiated")
+    
+    try:
+        # Send GET request to the Logic App
+        response = requests.get(LOGIC_APP_ENDPOINT, timeout=30)
+        
+        # Log the response
+        logger.info(f"Logic App Response Status: {response.status_code}")
+        logger.info(f"Logic App Response Headers: {response.headers}")
+        logger.info(f"Logic App Response Body: {response.text}")
+        
+        # Check if request was successful
+        if response.status_code == 200:
+            try:
+                response_json = response.json()
+                response_data = response_json
+            except:
+                response_data = response.text
+            
+            result = {
+                "status": "success",
+                "message": "Logic App call succeeded",
+                "status_code": response.status_code,
+                "response": response_data,
+                "timestamp": datetime.utcnow().isoformat()
+            }
+        else:
+            try:
+                response_data = response.json()
+            except:
+                response_data = response.text
+            
+            result = {
+                "status": "error",
+                "message": f"Logic App returned status code {response.status_code}",
+                "status_code": response.status_code,
+                "response": response_data,
+                "timestamp": datetime.utcnow().isoformat()
+            }
+        
+        return jsonify(result), response.status_code
+            
+    except requests.exceptions.RequestException as e:
+        logger.error(f"Error calling Logic App: {str(e)}")
+        
+        return jsonify({
+            "status": "error",
+            "message": f"Failed to call Logic App endpoint",
+            "error": str(e),
+            "timestamp": datetime.utcnow().isoformat()
         }), 500
 
 
@@ -187,7 +268,291 @@ def health_check():
     return jsonify({"status": "healthy"}), 200
 
 
-if __name__ == '__main__':
+@app.route('/api/get-stores-json', methods=['GET', 'POST'])
+def call_logic_app_stores_json():
+    """
+    Route to call the Stores Logic App endpoint and return JSON response.
+    Sends GET request to the Stores Logic App, logs the response, and returns JSON.
+    """
+    logger.info("Stores Logic App JSON call initiated")
+    
+    try:
+        # Send GET request to the Stores Logic App
+        response = requests.get(STORES_LOGIC_APP_ENDPOINT, timeout=30)
+        
+        # Log the response
+        logger.info(f"Stores Logic App Response Status: {response.status_code}")
+        logger.info(f"Stores Logic App Response Headers: {response.headers}")
+        logger.info(f"Stores Logic App Response Body: {response.text}")
+        
+        # Check if request was successful
+        if response.status_code == 200:
+            try:
+                response_json = response.json()
+                response_data = response_json
+            except:
+                response_data = response.text
+            
+            result = {
+                "status": "success",
+                "message": "Stores Logic App call succeeded",
+                "status_code": response.status_code,
+                "response": response_data,
+                "timestamp": datetime.utcnow().isoformat()
+            }
+        else:
+            try:
+                response_data = response.json()
+            except:
+                response_data = response.text
+            
+            result = {
+                "status": "error",
+                "message": f"Stores Logic App returned status code {response.status_code}",
+                "status_code": response.status_code,
+                "response": response_data,
+                "timestamp": datetime.utcnow().isoformat()
+            }
+        
+        return jsonify(result), response.status_code
+            
+    except requests.exceptions.RequestException as e:
+        logger.error(f"Error calling Stores Logic App: {str(e)}")
+        
+        return jsonify({
+            "status": "error",
+            "message": f"Failed to call Stores Logic App endpoint",
+            "error": str(e),
+            "timestamp": datetime.utcnow().isoformat()
+        }), 500
+
+
+@app.route('/api/call-logic-app-html', methods=['GET'])
+def call_logic_app_html():
+    """
+    Route to call the Logic App endpoint and return HTML response.
+    Sends GET request to the Logic App and renders the response as HTML.
+    """
+    logger.info("Logic App HTML call initiated")
+    
+    try:
+        # Send GET request to the Logic App
+        response = requests.get(LOGIC_APP_ENDPOINT, timeout=30)
+        
+        # Log the response
+        logger.info(f"Logic App Response Status: {response.status_code}")
+        
+        # Check if request was successful
+        if response.status_code == 200:
+            try:
+                response_data = response.json()
+                # Format as HTML table if it's a list
+                if isinstance(response_data, list):
+                    html_content = "<table style='width:100%; border-collapse: collapse;'>"
+                    if response_data and isinstance(response_data[0], dict):
+                        # Create header row
+                        html_content += "<thead><tr style='background-color: #667eea; color: white;'>"
+                        for key in response_data[0].keys():
+                            html_content += f"<th style='padding: 10px; text-align: left; border: 1px solid #ddd;'>{key}</th>"
+                        html_content += "</tr></thead>"
+                        
+                        # Create data rows
+                        html_content += "<tbody>"
+                        for idx, item in enumerate(response_data):
+                            row_color = "#f9f9f9" if idx % 2 == 0 else "white"
+                            html_content += f"<tr style='background-color: {row_color};'>"
+                            for value in item.values():
+                                html_content += f"<td style='padding: 10px; border: 1px solid #ddd;'>{value}</td>"
+                            html_content += "</tr>"
+                        html_content += "</tbody>"
+                    html_content += "</table>"
+                else:
+                    # For non-list responses, display as formatted JSON
+                    html_content = f"<pre style='background-color: #f5f5f5; padding: 15px; border-radius: 5px; overflow-x: auto;'>{json.dumps(response_data, indent=2)}</pre>"
+            except:
+                response_data = response.text
+                html_content = f"<pre style='background-color: #f5f5f5; padding: 15px; border-radius: 5px; overflow-x: auto;'>{response_data}</pre>"
+            
+            return f"""
+            <html>
+            <head>
+                <title>CROM - Logic App Response</title>
+                <style>
+                    body {{
+                        font-family: 'Segoe UI', Tahoma, Geneva, Verdana, sans-serif;
+                        background: linear-gradient(135deg, #667eea 0%, #764ba2 100%);
+                        min-height: 100vh;
+                        padding: 40px 20px;
+                    }}
+                    .container {{
+                        max-width: 1200px;
+                        margin: 0 auto;
+                        background: white;
+                        padding: 30px;
+                        border-radius: 10px;
+                        box-shadow: 0 20px 60px rgba(0, 0, 0, 0.3);
+                    }}
+                    h1 {{
+                        color: #333;
+                        border-bottom: 3px solid #667eea;
+                        padding-bottom: 15px;
+                    }}
+                    .info {{
+                        background-color: #f0f0f0;
+                        padding: 15px;
+                        border-radius: 5px;
+                        margin-bottom: 20px;
+                    }}
+                    table {{
+                        width: 100%;
+                        border-collapse: collapse;
+                    }}
+                    th {{
+                        background-color: #667eea;
+                        color: white;
+                        padding: 12px;
+                        text-align: left;
+                        border: 1px solid #ddd;
+                    }}
+                    td {{
+                        padding: 10px;
+                        border: 1px solid #ddd;
+                    }}
+                    .back-link {{
+                        margin-top: 20px;
+                    }}
+                    .back-link a {{
+                        color: #667eea;
+                        text-decoration: none;
+                        font-weight: bold;
+                    }}
+                    .back-link a:hover {{
+                        text-decoration: underline;
+                    }}
+                </style>
+            </head>
+            <body>
+                <div class="container">
+                    <h1>🚀 CROM - Logic App Response</h1>
+                    <div class="info">
+                        <p><strong>Status:</strong> Success</p>
+                        <p><strong>Status Code:</strong> {response.status_code}</p>
+                        <p><strong>Timestamp:</strong> {datetime.utcnow().isoformat()}</p>
+                    </div>
+                    <div>
+                        {html_content}
+                    </div>
+                    <div class="back-link">
+                        <a href="/">← Back to Home</a>
+                    </div>
+                </div>
+            </body>
+            </html>
+            """, 200, {'Content-Type': 'text/html'}
+        else:
+            return f"""
+            <html>
+            <head>
+                <title>CROM - Logic App Error</title>
+                <style>
+                    body {{
+                        font-family: 'Segoe UI', Tahoma, Geneva, Verdana, sans-serif;
+                        background: linear-gradient(135deg, #667eea 0%, #764ba2 100%);
+                        min-height: 100vh;
+                        padding: 40px 20px;
+                    }}
+                    .container {{
+                        max-width: 1200px;
+                        margin: 0 auto;
+                        background: white;
+                        padding: 30px;
+                        border-radius: 10px;
+                        box-shadow: 0 20px 60px rgba(0, 0, 0, 0.3);
+                    }}
+                    .error {{
+                        background-color: #f8d7da;
+                        color: #721c24;
+                        padding: 15px;
+                        border-radius: 5px;
+                        border-left: 4px solid #f5c6cb;
+                    }}
+                    .back-link {{
+                        margin-top: 20px;
+                    }}
+                    .back-link a {{
+                        color: #667eea;
+                        text-decoration: none;
+                        font-weight: bold;
+                    }}
+                </style>
+            </head>
+            <body>
+                <div class="container">
+                    <h1>⚠️ CROM - Logic App Error</h1>
+                    <div class="error">
+                        <p><strong>Status Code:</strong> {response.status_code}</p>
+                        <p><strong>Error:</strong> {response.text}</p>
+                    </div>
+                    <div class="back-link">
+                        <a href="/">← Back to Home</a>
+                    </div>
+                </div>
+            </body>
+            </html>
+            """, response.status_code, {'Content-Type': 'text/html'}
+            
+    except requests.exceptions.RequestException as e:
+        logger.error(f"Error calling Logic App: {str(e)}")
+        
+        return f"""
+        <html>
+        <head>
+            <title>CROM - Logic App Error</title>
+            <style>
+                body {{
+                    font-family: 'Segoe UI', Tahoma, Geneva, Verdana, sans-serif;
+                    background: linear-gradient(135deg, #667eea 0%, #764ba2 100%);
+                    min-height: 100vh;
+                    padding: 40px 20px;
+                }}
+                .container {{
+                    max-width: 1200px;
+                    margin: 0 auto;
+                    background: white;
+                    padding: 30px;
+                    border-radius: 10px;
+                    box-shadow: 0 20px 60px rgba(0, 0, 0, 0.3);
+                }}
+                .error {{
+                    background-color: #f8d7da;
+                    color: #721c24;
+                    padding: 15px;
+                    border-radius: 5px;
+                    border-left: 4px solid #f5c6cb;
+                }}
+                .back-link {{
+                    margin-top: 20px;
+                }}
+                .back-link a {{
+                    color: #667eea;
+                    text-decoration: none;
+                    font-weight: bold;
+                }}
+            </style>
+        </head>
+        <body>
+            <div class="container">
+                <h1>❌ CROM - Error</h1>
+                <div class="error">
+                    <p><strong>Error:</strong> {str(e)}</p>
+                </div>
+                <div class="back-link">
+                    <a href="/">← Back to Home</a>
+                </div>
+            </div>
+        </body>
+        </html>
+        """, 500, {'Content-Type': 'text/html'}
     # Run the app
     port = int(os.getenv('PORT', 5000))
     debug = os.getenv('FLASK_ENV', 'production') == 'development'
