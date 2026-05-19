@@ -47,6 +47,8 @@ LOGIC_APP_ENDPOINT = os.getenv('LOGIC_APP_ENDPOINT',
     'https://prod-15.eastus.logic.azure.com:443/workflows/1906dffc4adc4cdbae960cb5235ef7c3/triggers/When_an_HTTP_request_is_received/paths/invoke?api-version=2016-10-01&sp=%2Ftriggers%2FWhen_an_HTTP_request_is_received%2Frun&sv=1.0&sig=5MxclMj9Q21lN8sMTV-S2HfQOzWqKcjWAD8GgiR84a0')
 STORES_LOGIC_APP_ENDPOINT = os.getenv('STORES_LOGIC_APP_ENDPOINT',
     'https://prod-73.eastus.logic.azure.com:443/workflows/edb28f944da841b88fa8d0d923184675/triggers/When_an_HTTP_request_is_received_for_Stores_JSON_Blob/paths/invoke?api-version=2016-10-01&sp=%2Ftriggers%2FWhen_an_HTTP_request_is_received_for_Stores_JSON_Blob%2Frun&sv=1.0&sig=i_6b1gJASPMJWeW4FhZzlkzXe8zraSJfhZVTQzqHj6E')
+TRAILS_LOGIC_APP_ENDPOINT = os.getenv('TRAILS_LOGIC_APP_ENDPOINT',
+    'https://prod-01.eastus.logic.azure.com:443/workflows/a242a369510e4466b7853ef987c6ca16/triggers/When_an_HTTP_request_is_received_for_Trails_JSON_Blob/paths/invoke?api-version=2016-10-01&sp=%2Ftriggers%2FWhen_an_HTTP_request_is_received_for_Trails_JSON_Blob%2Frun&sv=1.0&sig=azNDWbRjc6lTY3-JcxI5S5ABem00IhCf98MM1WMGx0g')
 
 logger.info(f"Storage account: {STORAGE_ACCOUNT_NAME}")
 logger.info("Configuration loaded successfully")
@@ -322,6 +324,65 @@ def call_logic_app_stores_json():
         return jsonify({
             "status": "error",
             "message": f"Failed to call Stores Logic App endpoint",
+            "error": str(e),
+            "timestamp": datetime.utcnow().isoformat()
+        }), 500
+
+
+@app.route('/api/get-trails-json', methods=['GET', 'POST'])
+def call_logic_app_trails_json():
+    """
+    Route to call the Trails Logic App endpoint and return JSON response.
+    Sends GET request to the Trails Logic App, logs the response, and returns JSON.
+    """
+    logger.info("Trails Logic App JSON call initiated")
+    
+    try:
+        # Send GET request to the Trails Logic App
+        response = requests.get(TRAILS_LOGIC_APP_ENDPOINT, timeout=30)
+        
+        # Log the response
+        logger.info(f"Trails Logic App Response Status: {response.status_code}")
+        logger.info(f"Trails Logic App Response Headers: {response.headers}")
+        logger.info(f"Trails Logic App Response Body: {response.text}")
+        
+        # Check if request was successful
+        if response.status_code == 200:
+            try:
+                response_json = response.json()
+                response_data = response_json
+            except:
+                response_data = response.text
+            
+            result = {
+                "status": "success",
+                "message": "Trails Logic App call succeeded",
+                "status_code": response.status_code,
+                "response": response_data,
+                "timestamp": datetime.utcnow().isoformat()
+            }
+        else:
+            try:
+                response_data = response.json()
+            except:
+                response_data = response.text
+            
+            result = {
+                "status": "error",
+                "message": f"Trails Logic App returned status code {response.status_code}",
+                "status_code": response.status_code,
+                "response": response_data,
+                "timestamp": datetime.utcnow().isoformat()
+            }
+        
+        return jsonify(result), response.status_code
+            
+    except requests.exceptions.RequestException as e:
+        logger.error(f"Error calling Trails Logic App: {str(e)}")
+        
+        return jsonify({
+            "status": "error",
+            "message": f"Failed to call Trails Logic App endpoint",
             "error": str(e),
             "timestamp": datetime.utcnow().isoformat()
         }), 500
